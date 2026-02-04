@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sun, Plus, ChevronDown, ChevronRight } from 'lucide-react';
-import { firebaseAPI } from './App'; // Adjust import path as needed
+import { firebaseAPI } from '../App'; // Adjust import path as needed
 import TaskItem from './TaskItem'; // Import extracted TaskItem
 
 // --------------------  MAIN CONTENT  --------------------

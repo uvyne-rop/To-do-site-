@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { firebaseAPI } from './App'; // Adjust import path as needed
+import { firebaseAPI } from '../App'; // Adjust import path as needed
 
 // Action type constants (adjust if importing from a constants file)
 const EDIT_TASK = 'EDIT_TASK';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Star } from 'lucide-react';
-import { firebaseAPI } from './App'; // Adjust import path as needed
+import { firebaseAPI } from '../App'; // Adjust import path as needed
 
 
 const Tip = ({ text, children }) => {
