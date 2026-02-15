@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -7,15 +8,18 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from "firebase/auth";
+import { setLoading, setError } from '../store/uiSlice';
 
 // --------------------  AUTH SCREEN  --------------------
 export default function AuthScreen() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { loading, error } = useSelector(state => state.ui);
+
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const auth = getAuth();
   const google = new GoogleAuthProvider();
@@ -25,8 +29,8 @@ export default function AuthScreen() {
   /* ---------- EMAIL LOGIN / SIGNUP ---------- */
   const handleEmail = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    dispatch(setError(null));
+    dispatch(setLoading(true));
 
     try {
       if (isLogin) {
@@ -34,27 +38,26 @@ export default function AuthScreen() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      finish(); // Firebase auth listener in App.jsx will handle state
+      finish();
     } catch (err) {
-      // Firebase error messages are descriptive
-      setError(err.message);
+      dispatch(setError(err.message));
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
   /* ---------- GOOGLE SIGN-IN ---------- */
   const social = async (provider) => {
-    setError('');
-    setLoading(true);
+    dispatch(setError(null));
+    dispatch(setLoading(true));
+
     try {
       await signInWithPopup(auth, provider);
       finish();
     } catch (err) {
-      // common errors: popup-blocked, unauthorized-domain, popup-closed-by-user
-      setError(err.message);
+      dispatch(setError(err.message));
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -63,10 +66,16 @@ export default function AuthScreen() {
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">To-Do App</h1>
-          <p className="text-gray-500">{isLogin ? 'Login to continue' : 'Create an account'}</p>
+          <p className="text-gray-500">
+            {isLogin ? 'Login to continue' : 'Create an account'}
+          </p>
         </div>
 
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Social button */}
         <div className="space-y-3 mb-6">
@@ -86,47 +95,62 @@ export default function AuthScreen() {
         </div>
 
         <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-          <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-gray-500">OR CONTINUE WITH</span></div>
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-gray-500">
+              OR CONTINUE WITH
+            </span>
+          </div>
         </div>
 
         <form onSubmit={handleEmail} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
             <input
-              id="email"
               type="email"
-              placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
             <input
-              id="password"
               type="password"
-              placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition disabled:opacity-50"
           >
-            {loading ? (isLogin ? 'Logging in...' : 'Creating account...') : (isLogin ? 'Login' : 'Create account')}
+            {loading
+              ? (isLogin ? 'Logging in...' : 'Creating account...')
+              : (isLogin ? 'Login' : 'Create account')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
+          <button
+            onClick={() => dispatch(setError(null)) || setIsLogin(!isLogin)}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            {isLogin
+              ? "Don't have an account? Sign up"
+              : 'Already have an account? Login'}
           </button>
         </div>
       </div>
